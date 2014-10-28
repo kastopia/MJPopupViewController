@@ -48,7 +48,17 @@ static void * const keypath = (void*)&keypath;
 
 - (void)setMj_popupBackgroundView:(MJPopupBackgroundView *)mj_popupBackgroundView {
     objc_setAssociatedObject(self, kMJPopupBackgroundView, mj_popupBackgroundView, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-    
+}
+
+-(BOOL)canDismissFromOverlay
+{
+    NSNumber *obj = objc_getAssociatedObject(self, @selector(canDismissFromOverlay));
+    return obj && obj.boolValue;
+}
+
+-(void)setCanDismissFromOverlay:(BOOL)canDismissFromOverlay
+{
+    objc_setAssociatedObject(self, @selector(canDismissFromOverlay), @(canDismissFromOverlay), OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
 
 - (void)presentPopupViewController:(UIViewController*)popupViewController animationType:(MJPopupViewAnimation)animationType dismissed:(void(^)(void))dismissed
@@ -174,21 +184,23 @@ static void * const keypath = (void*)&keypath;
 - (void)dismissPopupViewControllerWithanimation:(id)sender
 {
     if ([sender isKindOfClass:[UIButton class]]) {
-        UIButton* dismissButton = sender;
-        switch (dismissButton.tag) {
-            case MJPopupViewAnimationSlideBottomTop:
-            case MJPopupViewAnimationSlideBottomBottom:
-            case MJPopupViewAnimationSlideTopTop:
-            case MJPopupViewAnimationSlideTopBottom:
-            case MJPopupViewAnimationSlideLeftLeft:
-            case MJPopupViewAnimationSlideLeftRight:
-            case MJPopupViewAnimationSlideRightLeft:
-            case MJPopupViewAnimationSlideRightRight:
-                [self dismissPopupViewControllerWithanimationType:dismissButton.tag];
-                break;
-            default:
-                [self dismissPopupViewControllerWithanimationType:MJPopupViewAnimationFade];
-                break;
+        if (self.canDismissFromOverlay) {
+            UIButton* dismissButton = sender;
+            switch (dismissButton.tag) {
+                case MJPopupViewAnimationSlideBottomTop:
+                case MJPopupViewAnimationSlideBottomBottom:
+                case MJPopupViewAnimationSlideTopTop:
+                case MJPopupViewAnimationSlideTopBottom:
+                case MJPopupViewAnimationSlideLeftLeft:
+                case MJPopupViewAnimationSlideLeftRight:
+                case MJPopupViewAnimationSlideRightLeft:
+                case MJPopupViewAnimationSlideRightRight:
+                    [self dismissPopupViewControllerWithanimationType:dismissButton.tag];
+                    break;
+                default:
+                    [self dismissPopupViewControllerWithanimationType:MJPopupViewAnimationFade];
+                    break;
+            }
         }
     } else {
         [self dismissPopupViewControllerWithanimationType:MJPopupViewAnimationFade];
